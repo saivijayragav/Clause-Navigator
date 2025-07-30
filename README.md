@@ -1,8 +1,3 @@
-Here's a clean and detailed `README.md` you can use for your project:
-
----
-
-````markdown
 # 📄 Clause Navigator — Document Query Evaluator API
 
 This FastAPI-based project uses Google's Gemini (`gemini-2.0-flash`) model and a RAG (Retrieval-Augmented Generation) pipeline to answer natural language questions from long-form documents.
@@ -21,15 +16,6 @@ This FastAPI-based project uses Google's Gemini (`gemini-2.0-flash`) model and a
 
 - Python 3.8+
 - [Gemini API Key](https://ai.google.dev/)
-- `requirements.txt` should include:
-  ```text
-  fastapi
-  uvicorn
-  pydantic
-  google-generativeai
-  faiss-cpu
-  python-jose
-````
 
 ---
 
@@ -71,16 +57,6 @@ uvicorn main:app --reload --port 8000
 ```
 
 API will be live at: [http://localhost:8000](http://localhost:8000)
-
----
-
-## 🔐 Authentication
-
-This API is protected by a JWT bearer token. You must include an `Authorization` header:
-
-```
-Authorization: Bearer <your-valid-jwt>
-```
 
 ---
 
@@ -146,4 +122,4 @@ To a file called `query_log.csv`.
 ├── query_log.csv        # Optional log file (generated on use)
 ├── requirements.txt     # Project dependencies
 ```
-
+---
