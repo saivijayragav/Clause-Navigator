@@ -15,7 +15,7 @@ KEY1 = "AIzaSyDYVIV848_WAeKTp3RgJdK-tijDCicbqJg" #"AIzaSyDYVIV848_WAeKTp3RgJdK-t
 KEY2 = "AIzaSyAsn7Ks2WRI6abt_YKSNYVdZRf6T49DsYo"
 # Configure Gemini
 genai.configure(api_key=KEY1)
-model = genai.GenerativeModel("gemini-2.5-flash")
+model = genai.GenerativeModel("gemini-2.5-pro")
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -107,9 +107,17 @@ def parse_to_list(input_data):
 @app.post("/api/v1/hackrx/run")
 async def run_submission(request: QueryRequest, token: str = Depends(JWTBearer())):
     log_to_json(request)
+    # Extract
+    # rag = RAG()
+    # rag.create_faiss_index(request.documents)  # Index document
+    # print("Creating faiss complete: ", time.time() - start)
+    # answers = []
+    # for question in request.questions:
+    #     chunks = rag.retrieval(question)  # RAG-style context retrieval
+    #     answer = generate_answer_gemini(question, chunks)
+    #     answers.append(answer)
     start = time.time()
-    answers = makeGeminiCall(request)
-    answers = parse_to_list(answers)
+    answers = parse_to_list(makeGeminiCall(request))
     print("Generate gemini answers complete: ", time.time() - start)
     for i, ans in enumerate(answers):
         print(f"{i}: {repr(ans)} (type: {type(ans)})")    
