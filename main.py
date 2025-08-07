@@ -100,6 +100,7 @@ def makeGeminiCall(request):
         return makeGeminiCall(request=request)
 
 def parse_to_list(input_data):
+    print(input_data)
     try:
         input_data = input_data[input_data.index('['):input_data.rindex(']')+1]
         return ast.literal_eval(input_data)
