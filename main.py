@@ -149,7 +149,7 @@ def log_to_json(request: QueryRequest, filename="query_log.json"):
     with open(filename, mode="w", encoding="utf-8") as file:
         json.dump(data, file, indent=2)
 if __name__ == "__main__":
-    uvicorn.run("main:app", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
 
 
