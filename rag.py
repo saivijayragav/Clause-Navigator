@@ -3,7 +3,7 @@ from embedding import OllamaEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from embedding import OllamaEmbeddings
-from helper import extract_text
+import helper as helper
 
 class RAG:
     def __init__(self):
@@ -18,7 +18,7 @@ class RAG:
     
     def create_faiss_index(self, url):
         # Step 1: Extract text
-        raw_text = extract_text(url)
+        raw_text = helper.extract_text_easyocr(url)
 
         # Step 2: Chunking
         splitter = RecursiveCharacterTextSplitter(
