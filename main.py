@@ -2,17 +2,20 @@ from fastapi import Depends, FastAPI
 from pydantic import BaseModel
 from typing import List
 import google.generativeai as genai
-from rag import RAG
+# from rag import RAG
 import uvicorn
 from jwtbearer import JWTBearer
 from datetime import datetime
 import os
 import csv
 import time
-GEMINI_API_KEY = ""
+import ast
+import json
+KEY1 = "AIzaSyDYVIV848_WAeKTp3RgJdK-tijDCicbqJg" #"AIzaSyDYVIV848_WAeKTp3RgJdK-tijDCicbqJg"
+KEY2 = "AIzaSyAsn7Ks2WRI6abt_YKSNYVdZRf6T49DsYo"
 # Configure Gemini
-genai.configure(api_key=GEMINI_API_KEY)
-model = genai.GenerativeModel("gemini-2.0-flash")
+genai.configure(api_key=KEY1)
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -32,7 +35,7 @@ def generate_answer_gemini(question: str, chunks: list):
     You are an assistant to help users navigate documents and answer their queries.
 
     Use only the following context to answer the question.
-
+    You can infer answers from the documents on your own.
     Context:
     {context}
 
@@ -52,41 +55,90 @@ def generate_answer_gemini(question: str, chunks: list):
     return response.text.strip()
 
 
+def makeGeminiCall(request):
+    global model, KEY1, KEY2 
+    try:
+        prompt_template = """
+        You are given a document: {documents}
+
+        Answer the following questions strictly based on the content of the document. 
+        Try your best to give or infer answer from the document. 
+        Refer to the page numbers, line in that page and the sections or topics that you find the answer from.
+        Also quote the lines in the document to ensure validity, remember to only use single quotes to quote.
+
+        Here are the questions: {questions}
+
+        Return ONLY a valid Python list of strings: [answer1, answer2, ...]
+        - Keep the answers concise
+        - Each string must be properly enclosed in double quotes.
+        - Do not include newline characters inside strings.
+        - Do not use triple quotes or backslashes.
+        - Do not include any introductory text.
+        - Output must be parseable by Python's ast.literal_eval()
+
+        Return only the list, and nothing else.
+        """
+
+        PROMPT = prompt_template.format(
+        documents=request.documents,
+        questions=request.questions
+        )
+        response = model.generate_content(PROMPT)
+
+        return response.text.strip()
+    except RecursionError:
+        print("Recursion limit exceeded — stopping retries.")
+        raise
+    except Exception as e:
+        print("API Key switching!")
+        KEY1, KEY2 = KEY2, KEY1
+        genai.configure(api_key=KEY1)
+        model = genai.GenerativeModel("gemini-2.5-flash-lite")
+        return makeGeminiCall(request=request)
+
+def parse_to_list(input_data):
+    try:
+        input_data = input_data[input_data.index('['):input_data.rindex(']')+1]
+        return ast.literal_eval(input_data)
+    except Exception as e:
+        print("Parsing failed:", e)
+        return ["Error: Could not parse Gemini response."]
 
 @app.post("/api/v1/hackrx/run")
 async def run_submission(request: QueryRequest, token: str = Depends(JWTBearer())):
-    # log_to_csv(request)
-    # Extract
-    rag = RAG()
+    log_to_json(request)
     start = time.time()
-    print("Starting...", )
-    rag.create_faiss_index(request.documents)  # Index document
-    print("Creating faiss complete: ", time.time() - start)
-    answers = []
-    for question in request.questions:
-        chunks = rag.retrieval(question)  # RAG-style context retrieval
-        answer = generate_answer_gemini(question, chunks)
-        answers.append(answer)
+    answers = makeGeminiCall(request)
+    answers = parse_to_list(answers)
     print("Generate gemini answers complete: ", time.time() - start)
+    for i, ans in enumerate(answers):
+        print(f"{i}: {repr(ans)} (type: {type(ans)})")    
+    print(QueryResponse(answers=answers))
     return QueryResponse(answers=answers)
 
-def log_to_csv(request: QueryRequest, filename="query_log.csv"):
-    file_exists = os.path.isfile(filename)
-    
-    with open(filename, mode="a", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file)
-        
-        # Write header if file is new
-        if not file_exists:
-            writer.writerow(["timestamp", "questions", "documents"])
-        
-        writer.writerow([
-            datetime.now().isoformat(),
-            "; ".join(request.questions),
-            request.documents
-        ])
+def log_to_json(request: QueryRequest, filename="query_log.json"):
+    log_entry = {
+        "timestamp": datetime.now().isoformat(),
+        "questions": request.questions,
+        "documents": request.documents
+    }
+
+    # Load existing logs if file exists, else start a new list
+    if os.path.isfile(filename):
+        with open(filename, mode="r", encoding="utf-8") as file:
+            try:
+                data = json.load(file)
+            except json.JSONDecodeError:
+                data = []
+    else:
+        data = []
+
+    # Append new entry and write back
+    data.append(log_entry)
+    with open(filename, mode="w", encoding="utf-8") as file:
+        json.dump(data, file, indent=2)
 if __name__ == "__main__":
-    uvicorn.run("main:app", port=8000)
+    uvicorn.run("main:app", port=8000, reload=True)
 
 
 

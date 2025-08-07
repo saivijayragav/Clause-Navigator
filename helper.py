@@ -8,6 +8,75 @@ import extract_msg
 from email import policy
 from email.parser import BytesParser
 
+# Testing
+import easyocr
+import requests
+from tempfile import NamedTemporaryFile
+
+reader = easyocr.Reader(['en'])  # only downloads a small model
+
+def extract_text_easyocr(url):
+    response = requests.get(url)
+    with NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+        tmp_file.write(response.content)
+        pdf_path = tmp_file.name
+
+    result = reader.readtext(pdf_path, detail=0, paragraph=True)
+    return "\n".join(result)
+
+
+import subprocess
+import requests
+from tempfile import NamedTemporaryFile
+from bs4 import BeautifulSoup
+import os
+
+def extract_text_pdf2html(url):
+    response = requests.get(url)
+    with NamedTemporaryFile(delete=False, suffix=".pdf") as pdf_file:
+        pdf_file.write(response.content)
+        pdf_path = pdf_file.name
+
+    html_path = pdf_path.replace(".pdf", ".html")
+
+    subprocess.run(["pdf2htmlEX", "--quiet", pdf_path, html_path])
+
+    with open(html_path, "r", encoding="utf-8") as f:
+        soup = BeautifulSoup(f, "html.parser")
+
+    # Collect visible text from divs
+    divs = soup.find_all("div")
+    texts = [div.get_text(separator=" ", strip=True) for div in divs]
+    texts = [text for text in texts if text]
+
+    return "\n\n".join(texts)
+
+
+# from paddleocr import PaddleOCR
+# import requests
+# from tempfile import NamedTemporaryFile
+
+# ocr = PaddleOCR(use_angle_cls=True, lang='en')
+
+# def extract_text_paddleocr(url):
+#     response = requests.get(url)
+#     with NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
+#         tmp_file.write(response.content)
+#         pdf_path = tmp_file.name
+
+#     result = ocr.ocr(pdf_path)
+#     texts = []
+
+#     for page in result:
+#         for line in page:
+#             _, (text, _) = line
+#             texts.append(text)
+
+#     return "\n".join(texts)
+
+
+# Production
+
 def extract_text(url: str) -> str:
     # Step 1: Download the file
     response = requests.get(url)
