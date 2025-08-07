@@ -11,11 +11,14 @@ import csv
 import time
 import ast
 import json
-KEY1 = "AIzaSyDYVIV848_WAeKTp3RgJdK-tijDCicbqJg" #"AIzaSyDYVIV848_WAeKTp3RgJdK-tijDCicbqJg"
-KEY2 = "AIzaSyAsn7Ks2WRI6abt_YKSNYVdZRf6T49DsYo"
+from dotenv import load_dotenv
+load_dotenv()
+
+KEY1 = os.getenv('KEY1')
+KEY2 = os.getenv('KEY2')
 # Configure Gemini
 genai.configure(api_key=KEY1)
-model = genai.GenerativeModel("gemini-2.5-pro")
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -63,7 +66,7 @@ def makeGeminiCall(request):
 
         Answer the following questions strictly based on the content of the document. 
         Try your best to give or infer answer from the document. 
-        Refer to the page numbers, line in that page and the sections or topics that you find the answer from.
+        Refer to the page numbers, line number in that page and the sections or topics that you find the answer from.
         Also quote the lines in the document to ensure validity, remember to only use single quotes to quote.
 
         Here are the questions: {questions}
