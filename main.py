@@ -122,8 +122,8 @@ async def run_submission(request: QueryRequest, token: str = Depends(JWTBearer()
     #     answers.append(answer)
     start = time.time()
     answers = parse_to_list(makeGeminiCall(request))
+    print(answers)
     print("Generate gemini answers complete: ", time.time() - start) 
-    print(QueryResponse(answers=answers))
     return QueryResponse(answers=answers)
 
 def log_to_json(request: QueryRequest, filename="query_log.json"):
