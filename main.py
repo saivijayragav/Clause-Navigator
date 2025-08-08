@@ -64,11 +64,12 @@ def makeGeminiCall(request):
         prompt_template = """
         You are given a document: {documents}
 
-        Answer the following questions strictly based on the content of the document. 
+        Answer the following questions based on the content of the document.
+        If there is no answers for the question in the document answer on your own. 
         Try your best to give or infer answer from the document. 
         Refer to the page numbers, line number in that page and the sections or topics that you find the answer from.
         Also quote the lines in the document to ensure validity, remember to only use single quotes to quote.
-
+        **IMPORTANT: ALWAYS SURROUND THE ANSWERS WITH DOUBLE QUOTES. DO NOT USE DOUBLE QUOTES INSIDES.** 
         Here are the questions: {questions}
 
         Return ONLY a valid Python list of strings: [answer1, answer2, ...]
