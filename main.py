@@ -111,7 +111,7 @@ def parse_to_list(input_data):
 
 @app.post("/api/v1/hackrx/run")
 async def run_submission(request: QueryRequest, token: str = Depends(JWTBearer())):
-    log_to_json(request)
+    print(request)
     # Extract
     # rag = RAG()
     # rag.create_faiss_index(request.documents)  # Index document
