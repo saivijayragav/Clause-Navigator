@@ -101,7 +101,6 @@ def makeGeminiCall(request):
         return makeGeminiCall(request=request)
 
 def parse_to_list(input_data):
-    print(input_data)
     try:
         input_data = input_data[input_data.index('['):input_data.rindex(']')+1]
         return ast.literal_eval(input_data)
@@ -123,9 +122,7 @@ async def run_submission(request: QueryRequest, token: str = Depends(JWTBearer()
     #     answers.append(answer)
     start = time.time()
     answers = parse_to_list(makeGeminiCall(request))
-    print("Generate gemini answers complete: ", time.time() - start)
-    for i, ans in enumerate(answers):
-        print(f"{i}: {repr(ans)} (type: {type(ans)})")    
+    print("Generate gemini answers complete: ", time.time() - start) 
     print(QueryResponse(answers=answers))
     return QueryResponse(answers=answers)
 
