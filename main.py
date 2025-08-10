@@ -9,7 +9,10 @@ from datetime import datetime
 import os
 import csv
 import time
-GEMINI_API_KEY = ""
+from dotenv import load_dotenv
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 # Configure Gemini
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel("gemini-2.0-flash")
